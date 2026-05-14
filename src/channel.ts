@@ -27,6 +27,7 @@ import type { WeixinQrStartResult, WeixinQrWaitResult } from "./auth/login-qr.js
 // Lazy-imported inside startAccount to avoid pulling in the monitor -> process-message ->
 // command-auth chain during plugin registration, which can re-enter plugin/provider registry
 // resolution before the account actually starts.
+import { applyWeixinMessageSendingHook, emitWeixinMessageSent } from "./messaging/outbound-hooks.js";
 import { sendWeixinMediaFile } from "./messaging/send-media.js";
 import { sendMessageWeixin, StreamingMarkdownFilter } from "./messaging/send.js";
 import { downloadRemoteImageToTemp } from "./cdn/upload.js";
@@ -109,7 +110,6 @@ async function sendWeixinOutbound(params: {
   text: string;
   accountId?: string | null;
   contextToken?: string;
-  mediaUrl?: string;
 }): Promise<{ channel: string; messageId: string }> {
   const account = resolveWeixinAccount(params.cfg, params.accountId);
   const aLog = logger.withAccount(account.accountId);
@@ -123,13 +123,31 @@ async function sendWeixinOutbound(params: {
   }
   const f = new StreamingMarkdownFilter();
   const rawText = params.text ?? "";
-  const filteredText = f.feed(rawText) + f.flush();
-  const result = await sendMessageWeixin({ to: params.to, text: filteredText, opts: {
-    baseUrl: account.baseUrl,
-    token: account.token,
-    contextToken: params.contextToken,
-  }});
-  return { channel: "openclaw-weixin", messageId: result.messageId };
+  let filteredText = f.feed(rawText) + f.flush();
+
+  const sendingResult = await applyWeixinMessageSendingHook({
+    to: params.to,
+    text: filteredText,
+    accountId: account.accountId,
+  });
+  if (sendingResult.cancelled) {
+    aLog.info(`sendWeixinOutbound: cancelled by message_sending hook to=${params.to}`);
+    return { channel: "openclaw-weixin", messageId: "" };
+  }
+  filteredText = sendingResult.text;
+
+  try {
+    const result = await sendMessageWeixin({ to: params.to, text: filteredText, opts: {
+      baseUrl: account.baseUrl,
+      token: account.token,
+      contextToken: params.contextToken,
+    }});
+    emitWeixinMessageSent({ to: params.to, content: filteredText, success: true, accountId: account.accountId });
+    return { channel: "openclaw-weixin", messageId: result.messageId };
+  } catch (err) {
+    emitWeixinMessageSent({ to: params.to, content: filteredText, success: false, error: String(err), accountId: account.accountId });
+    throw err;
+  }
 }
 
 export const weixinPlugin: ChannelPlugin<ResolvedWeixinAccount> = {
@@ -215,6 +233,19 @@ export const weixinPlugin: ChannelPlugin<ResolvedWeixinAccount> = {
       }
 
       const mediaUrl = ctx.mediaUrl;
+      let text = ctx.text ?? "";
+
+      const sendingResult = await applyWeixinMessageSendingHook({
+        to: ctx.to,
+        text,
+        accountId: account.accountId,
+        mediaUrl,
+      });
+      if (sendingResult.cancelled) {
+        aLog.info(`sendMedia: cancelled by message_sending hook to=${ctx.to}`);
+        return { channel: "openclaw-weixin", messageId: "" };
+      }
+      text = sendingResult.text;
 
       if (mediaUrl && (isLocalFilePath(mediaUrl) || isRemoteUrl(mediaUrl))) {
         let filePath: string;
@@ -227,24 +258,35 @@ export const weixinPlugin: ChannelPlugin<ResolvedWeixinAccount> = {
           aLog.debug(`sendMedia: remote image downloaded to ${filePath}`);
         }
         const contextToken = getContextToken(account.accountId, ctx.to);
-        const result = await sendWeixinMediaFile({
-          filePath,
-          to: ctx.to,
-          text: ctx.text ?? "",
-          opts: { baseUrl: account.baseUrl, token: account.token, contextToken },
-          cdnBaseUrl: account.cdnBaseUrl,
-        });
-        return { channel: "openclaw-weixin", messageId: result.messageId };
+        try {
+          const result = await sendWeixinMediaFile({
+            filePath,
+            to: ctx.to,
+            text,
+            opts: { baseUrl: account.baseUrl, token: account.token, contextToken },
+            cdnBaseUrl: account.cdnBaseUrl,
+          });
+          emitWeixinMessageSent({ to: ctx.to, content: text, success: true, accountId: account.accountId });
+          return { channel: "openclaw-weixin", messageId: result.messageId };
+        } catch (err) {
+          emitWeixinMessageSent({ to: ctx.to, content: text, success: false, error: String(err), accountId: account.accountId });
+          throw err;
+        }
       }
 
-      const result = await sendWeixinOutbound({
-        cfg: ctx.cfg,
-        to: ctx.to,
-        text: ctx.text ?? "",
-        accountId,
-        contextToken: getContextToken(account.accountId, ctx.to),
-      });
-      return result;
+      const contextToken = getContextToken(account.accountId, ctx.to);
+      try {
+        const result = await sendMessageWeixin({ to: ctx.to, text, opts: {
+          baseUrl: account.baseUrl,
+          token: account.token,
+          contextToken,
+        }});
+        emitWeixinMessageSent({ to: ctx.to, content: text, success: true, accountId: account.accountId });
+        return { channel: "openclaw-weixin", messageId: result.messageId };
+      } catch (err) {
+        emitWeixinMessageSent({ to: ctx.to, content: text, success: false, error: String(err), accountId: account.accountId });
+        throw err;
+      }
     },
   },
   status: {
