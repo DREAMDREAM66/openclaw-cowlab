@@ -295,10 +295,32 @@ export async function apiGetFetch(params: {
   }
 }
 
+function combineAbortSignals(
+  internal: AbortController | undefined,
+  external: AbortSignal | undefined,
+): { signal?: AbortSignal; cleanup: () => void } {
+  if (!internal && !external) return { cleanup: () => {} };
+  if (!internal) return { signal: external, cleanup: () => {} };
+  if (!external) return { signal: internal.signal, cleanup: () => {} };
+
+  if (external.aborted) {
+    internal.abort();
+    return { signal: internal.signal, cleanup: () => {} };
+  }
+
+  const onExternalAbort = () => internal.abort();
+  external.addEventListener("abort", onExternalAbort, { once: true });
+  return {
+    signal: internal.signal,
+    cleanup: () => external.removeEventListener("abort", onExternalAbort),
+  };
+}
+
 /**
  * Common fetch wrapper: POST JSON to a Weixin API endpoint.
  * When `timeoutMs` is provided, the request is aborted after that many milliseconds.
  * When omitted, no client-side timeout is applied (relies on OS/TCP stack).
+ * When `abortSignal` is provided, an external channel stop also aborts the request.
  * Returns the raw response text on success; throws on HTTP error or timeout.
  */
 export async function apiPostFetch(params: {
@@ -308,6 +330,7 @@ export async function apiPostFetch(params: {
   token?: string;
   timeoutMs?: number;
   label: string;
+  abortSignal?: AbortSignal;
 }): Promise<string> {
   const base = ensureTrailingSlash(params.baseUrl);
   const url = new URL(params.endpoint, base);
@@ -320,14 +343,14 @@ export async function apiPostFetch(params: {
     controller != null && params.timeoutMs !== undefined
       ? setTimeout(() => controller.abort(), params.timeoutMs)
       : undefined;
+  const { signal, cleanup } = combineAbortSignals(controller, params.abortSignal);
   try {
     const res = await fetch(url.toString(), {
       method: "POST",
       headers: hdrs,
       body: params.body,
-      ...(controller ? { signal: controller.signal } : {}),
+      ...(signal ? { signal } : {}),
     });
-    if (t !== undefined) clearTimeout(t);
     const rawText = await res.text();
     logger.debug(`${params.label} status=${res.status} raw=${redactBody(rawText)}`);
     if (!res.ok) {
@@ -335,8 +358,10 @@ export async function apiPostFetch(params: {
     }
     return rawText;
   } catch (err) {
-    if (t !== undefined) clearTimeout(t);
     throw err;
+  } finally {
+    if (t !== undefined) clearTimeout(t);
+    cleanup();
   }
 }
 
@@ -351,6 +376,13 @@ export async function getUpdates(
     baseUrl: string;
     token?: string;
     timeoutMs?: number;
+    /**
+     * Optional external abort signal (e.g. from the gateway when stopping the
+     * channel). When this aborts, the in-flight long-poll is terminated
+     * immediately so the monitor loop can exit well within the gateway's
+     * channel-stop budget (#141).
+     */
+    abortSignal?: AbortSignal;
   },
 ): Promise<GetUpdatesResp> {
   const timeout = params.timeoutMs ?? DEFAULT_LONG_POLL_TIMEOUT_MS;
@@ -365,13 +397,22 @@ export async function getUpdates(
       token: params.token,
       timeoutMs: timeout,
       label: "getUpdates",
+      abortSignal: params.abortSignal,
     });
     const resp: GetUpdatesResp = JSON.parse(rawText);
     return resp;
   } catch (err) {
-    // Long-poll timeout is normal; return empty response so caller can retry
+    // Long-poll timeout *or* external abort both surface as AbortError. The caller
+    // re-checks `abortSignal?.aborted` after we return; when aborted, it exits
+    // the loop. When not aborted (i.e. plain client-side long-poll timeout),
+    // returning the empty response lets the caller retry — preserving prior
+    // behavior for the normal long-poll case.
     if (err instanceof Error && err.name === "AbortError") {
-      logger.debug(`getUpdates: client-side timeout after ${timeout}ms, returning empty response`);
+      if (params.abortSignal?.aborted) {
+        logger.debug(`getUpdates: aborted by external signal`);
+      } else {
+        logger.debug(`getUpdates: client-side timeout after ${timeout}ms, returning empty response`);
+      }
       return { ret: 0, msgs: [], get_updates_buf: params.get_updates_buf };
     }
     throw err;
