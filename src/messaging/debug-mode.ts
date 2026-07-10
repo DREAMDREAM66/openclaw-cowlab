@@ -1,7 +1,7 @@
 /**
  * Per-bot debug mode toggle, persisted to disk so it survives gateway restarts.
  *
- * State file: `<stateDir>/openclaw-weixin/debug-mode.json`
+ * State file: `<stateDir>/openclaw-cowlab/debug-mode.json`
  * Format:     `{ "accounts": { "<accountId>": true, ... } }`
  *
  * When enabled, processOneMessage appends a timing summary after each
@@ -18,7 +18,7 @@ interface DebugModeState {
 }
 
 function resolveDebugModePath(): string {
-  return path.join(resolveStateDir(), "openclaw-weixin", "debug-mode.json");
+  return path.join(resolveStateDir(), "openclaw-cowlab", "debug-mode.json");
 }
 
 function loadState(): DebugModeState {

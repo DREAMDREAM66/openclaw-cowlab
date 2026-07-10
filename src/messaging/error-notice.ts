@@ -1,30 +1,30 @@
 import { logger } from "../util/logger.js";
-import { sendMessageWeixin } from "./send.js";
+import { sendMessageMyCowlab } from "./send.js";
 
 /**
  * Send a plain-text error notice back to the user.
  * Fire-and-forget: errors are logged but never thrown, so callers stay unaffected.
  * No-op when contextToken is absent (we have no conversation reference to reply into).
  */
-export async function sendWeixinErrorNotice(params: {
+export async function sendMyCowlabErrorNotice(params: {
   to: string;
   contextToken: string | undefined;
   message: string;
-  baseUrl: string;
+  apiUrl: string;
   token?: string;
   errLog: (m: string) => void;
 }): Promise<void> {
   if (!params.contextToken) {
-    logger.warn(`sendWeixinErrorNotice: no contextToken for to=${params.to}, sending without context`);
+    logger.warn(`sendMyCowlabErrorNotice: no contextToken for to=${params.to}, sending without context`);
   }
   try {
-    await sendMessageWeixin({ to: params.to, text: params.message, opts: {
-      baseUrl: params.baseUrl,
-      token: params.token,
-      contextToken: params.contextToken,
-    }});
-    logger.debug(`sendWeixinErrorNotice: sent to=${params.to}`);
+    await sendMessageMyCowlab({
+      to: params.to,
+      text: params.message,
+      opts: { apiUrl: params.apiUrl, token: params.token, contextToken: params.contextToken },
+    });
+    logger.debug(`sendMyCowlabErrorNotice: sent to=${params.to}`);
   } catch (err) {
-    params.errLog(`[weixin] sendWeixinErrorNotice failed to=${params.to}: ${String(err)}`);
+    params.errLog(`[cowlab] sendMyCowlabErrorNotice failed to=${params.to}: ${String(err)}`);
   }
 }

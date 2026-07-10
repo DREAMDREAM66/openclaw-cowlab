@@ -30,10 +30,10 @@ function safeKey(raw: string): string {
 /**
  * Resolve the framework allowFrom file path for a given account.
  * Mirrors: `resolveAllowFromPath(channel, env, accountId)` from core.
- * Path: `<credDir>/openclaw-weixin-<accountId>-allowFrom.json`
+ * Path: `<credDir>/openclaw-cowlab-<accountId>-allowFrom.json`
  */
 export function resolveFrameworkAllowFromPath(accountId: string): string {
-  const base = safeKey("openclaw-weixin");
+  const base = safeKey("openclaw-cowlab");
   const safeAccount = safeKey(accountId);
   return path.join(resolveCredentialsDir(), `${base}-${safeAccount}-allowFrom.json`);
 }

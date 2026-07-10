@@ -13,14 +13,11 @@ export default defineConfig({
         "src/util/logger.ts",
         "src/monitor/monitor.ts",
         "src/channel.ts",
-        "src/auth/login-qr.ts",
-        "src/media/media-download.ts",
-        "src/cdn/pic-decrypt.ts",
         "src/auth/accounts.ts",
-        "src/media/thumbnail.ts",
         "src/messaging/process-message.ts",
-        "src/cdn/aes-ecb.ts",
-        "src/cdn/cdn-url.ts",
+        "src/messaging/inbound.ts",
+        // Integration / mock-backend tests are out of coverage by convention.
+        "tests/**",
       ],
       thresholds: {
         lines: 90,

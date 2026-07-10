@@ -1,37 +1,31 @@
 import fs from "node:fs";
 import path from "node:path";
 
-import { deriveRawAccountId } from "../auth/accounts.js";
-
 import { resolveStateDir } from "./state-dir.js";
 
 function resolveAccountsDir(): string {
-  return path.join(resolveStateDir(), "openclaw-weixin", "accounts");
+  return path.join(resolveStateDir(), "openclaw-cowlab", "accounts");
 }
 
 /**
- * Path to the persistent get_updates_buf file for an account.
- * Stored alongside account data: ~/.openclaw/openclaw-weixin/accounts/{accountId}.sync.json
+ * Path to the persistent long-poll cursor file for an account.
+ * Stored alongside account data: <stateDir>/openclaw-cowlab/accounts/{accountId}.sync.json
  */
 export function getSyncBufFilePath(accountId: string): string {
   return path.join(resolveAccountsDir(), `${accountId}.sync.json`);
 }
 
-/** Legacy single-account syncbuf (pre multi-account): `.openclaw-weixin-sync/default.json`. */
+/** Legacy single-account path: agents/default/sessions/.openclaw-cowlab-sync/default.json. */
 function getLegacySyncBufDefaultJsonPath(): string {
   return path.join(
     resolveStateDir(),
     "agents",
     "default",
     "sessions",
-    ".openclaw-weixin-sync",
+    ".openclaw-cowlab-sync",
     "default.json",
   );
 }
-
-export type SyncBufData = {
-  get_updates_buf: string;
-};
 
 function readSyncBufFile(filePath: string): string | undefined {
   try {
@@ -47,35 +41,26 @@ function readSyncBufFile(filePath: string): string | undefined {
 }
 
 /**
- * Load persisted get_updates_buf.
- * Falls back in order:
- *   1. Primary path (normalized accountId, new installs)
- *   2. Compat path (raw accountId derived from pattern, old installs)
- *   3. Legacy single-account path (very old installs without multi-account support)
+ * Load the persisted long-poll cursor.
+ *
+ * The on-disk file is keyed by `get_updates_buf` for compatibility with the
+ * original schema, but the value itself is opaque to the plugin — it's
+ * whatever the backend uses to remember "where we left off" (a watermark,
+ * a server-issued token, etc.).
+ *
+ * Falls back to a legacy single-account path for old installs.
  */
 export function loadGetUpdatesBuf(filePath: string): string | undefined {
   const value = readSyncBufFile(filePath);
   if (value !== undefined) return value;
-
-  // Compat: if given path uses a normalized accountId (e.g. "b0f5860fdecb-im-bot.sync.json"),
-  // also try the old raw-ID filename (e.g. "b0f5860fdecb@im.bot.sync.json").
-  const accountId = path.basename(filePath, ".sync.json");
-  const rawId = deriveRawAccountId(accountId);
-  if (rawId) {
-    const compatPath = path.join(resolveAccountsDir(), `${rawId}.sync.json`);
-    const compatValue = readSyncBufFile(compatPath);
-    if (compatValue !== undefined) return compatValue;
-  }
-
-  // Legacy fallback: old single-account installs stored syncbuf without accountId.
   return readSyncBufFile(getLegacySyncBufDefaultJsonPath());
 }
 
 /**
- * Persist get_updates_buf. Creates parent dir if needed.
+ * Persist the long-poll cursor. Creates the parent dir if needed.
  */
-export function saveGetUpdatesBuf(filePath: string, getUpdatesBuf: string): void {
+export function saveGetUpdatesBuf(filePath: string, cursor: string): void {
   const dir = path.dirname(filePath);
   fs.mkdirSync(dir, { recursive: true });
-  fs.writeFileSync(filePath, JSON.stringify({ get_updates_buf: getUpdatesBuf }, null, 0), "utf-8");
+  fs.writeFileSync(filePath, JSON.stringify({ get_updates_buf: cursor }, null, 0), "utf-8");
 }

@@ -54,7 +54,7 @@ describe("debug-mode", () => {
   it("persists state to disk", () => {
     toggleDebugMode("acc1");
 
-    const filePath = path.join(mockStateDir, "openclaw-weixin", "debug-mode.json");
+    const filePath = path.join(mockStateDir, "openclaw-cowlab", "debug-mode.json");
     expect(fs.existsSync(filePath)).toBe(true);
 
     const raw = JSON.parse(fs.readFileSync(filePath, "utf-8"));

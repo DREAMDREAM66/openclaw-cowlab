@@ -33,7 +33,7 @@ describe("getSyncBufFilePath", () => {
   it("returns path under accounts dir", async () => {
     const { getSyncBufFilePath } = await loadModule();
     const result = getSyncBufFilePath("myacc");
-    expect(result).toBe(path.join(tmpDir, "openclaw-weixin", "accounts", "myacc.sync.json"));
+    expect(result).toBe(path.join(tmpDir, "openclaw-cowlab", "accounts", "myacc.sync.json"));
   });
 });
 
@@ -52,21 +52,11 @@ describe("loadGetUpdatesBuf", () => {
     expect(loadGetUpdatesBuf(fp)).toBe("buf-data");
   });
 
-  it("falls back to compat path for -im-bot suffix", async () => {
-    const { loadGetUpdatesBuf, getSyncBufFilePath } = await loadModule();
-    const fp = getSyncBufFilePath("abc-im-bot");
-    // Write at old raw-ID filename
-    const dir = path.join(tmpDir, "openclaw-weixin", "accounts");
-    fs.mkdirSync(dir, { recursive: true });
-    fs.writeFileSync(path.join(dir, "abc@im.bot.sync.json"), JSON.stringify({ get_updates_buf: "compat-buf" }));
-    expect(loadGetUpdatesBuf(fp)).toBe("compat-buf");
-  });
-
   it("falls back to legacy sync buf path", async () => {
     const { loadGetUpdatesBuf, getSyncBufFilePath } = await loadModule();
     const fp = getSyncBufFilePath("someacc");
     // Write at legacy path
-    const legacyDir = path.join(tmpDir, "agents", "default", "sessions", ".openclaw-weixin-sync");
+    const legacyDir = path.join(tmpDir, "agents", "default", "sessions", ".openclaw-cowlab-sync");
     fs.mkdirSync(legacyDir, { recursive: true });
     fs.writeFileSync(path.join(legacyDir, "default.json"), JSON.stringify({ get_updates_buf: "legacy-buf" }));
     expect(loadGetUpdatesBuf(fp)).toBe("legacy-buf");

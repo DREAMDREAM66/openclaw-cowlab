@@ -11,7 +11,7 @@ import { resolvePreferredOpenClawTmpDir } from "openclaw/plugin-sdk/infra-runtim
  */
 
 const MAIN_LOG_DIR = resolvePreferredOpenClawTmpDir();
-const SUBSYSTEM = "gateway/channels/openclaw-weixin";
+const SUBSYSTEM = "gateway/channels/openclaw-cowlab";
 const RUNTIME = "node";
 const RUNTIME_VERSION = process.versions.node;
 const HOSTNAME = os.hostname() || "unknown";

@@ -43,7 +43,7 @@ describe("resolveFrameworkAllowFromPath", () => {
     const { resolveFrameworkAllowFromPath } = await loadModule();
     const result = resolveFrameworkAllowFromPath("test-account");
     expect(result).toBe(
-      path.join(tmpDir, "credentials", "openclaw-weixin-test-account-allowFrom.json"),
+      path.join(tmpDir, "credentials", "openclaw-cowlab-test-account-allowFrom.json"),
     );
   });
 
@@ -52,14 +52,14 @@ describe("resolveFrameworkAllowFromPath", () => {
     process.env.OPENCLAW_OAUTH_DIR = customDir;
     const { resolveFrameworkAllowFromPath } = await loadModule();
     const result = resolveFrameworkAllowFromPath("my-bot");
-    expect(result).toBe(path.join(customDir, "openclaw-weixin-my-bot-allowFrom.json"));
+    expect(result).toBe(path.join(customDir, "openclaw-cowlab-my-bot-allowFrom.json"));
   });
 
   it("sanitizes special characters in accountId", async () => {
     const { resolveFrameworkAllowFromPath } = await loadModule();
     const result = resolveFrameworkAllowFromPath("abc@im.bot");
     // Only [\\/:*?"<>|] and ".." are replaced; @ and dots are preserved
-    expect(result).toContain("openclaw-weixin-abc@im.bot-allowFrom.json");
+    expect(result).toContain("openclaw-cowlab-abc@im.bot-allowFrom.json");
   });
 });
 
@@ -152,7 +152,7 @@ describe("registerUserInFrameworkStore", () => {
 
     expect(mockWithFileLock).toHaveBeenCalledTimes(1);
     const [lockPath, lockOpts] = mockWithFileLock.mock.calls[0]!;
-    expect(lockPath).toContain("openclaw-weixin-acc6-allowFrom.json");
+    expect(lockPath).toContain("openclaw-cowlab-acc6-allowFrom.json");
     expect(lockOpts).toHaveProperty("retries");
     expect(lockOpts).toHaveProperty("stale");
   });

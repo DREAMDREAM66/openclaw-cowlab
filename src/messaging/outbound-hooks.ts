@@ -8,14 +8,14 @@ import { getGlobalHookRunner } from "openclaw/plugin-sdk/plugin-runtime";
 
 import { logger } from "../util/logger.js";
 
-const CHANNEL_ID = "openclaw-weixin";
+const CHANNEL_ID = "openclaw-cowlab";
 
 /**
  * Run message_sending hook before sending.
  * Returns the (possibly modified) text content plus a cancelled flag.
  * Hook errors are caught and logged — sending proceeds regardless.
  */
-export async function applyWeixinMessageSendingHook(params: {
+export async function applyMyCowlabMessageSendingHook(params: {
   to: string;
   text: string;
   accountId?: string;
@@ -54,7 +54,7 @@ export async function applyWeixinMessageSendingHook(params: {
 /**
  * Fire message_sent hook (fire-and-forget) after a send attempt.
  */
-export function emitWeixinMessageSent(params: {
+export function emitMyCowlabMessageSent(params: {
   to: string;
   content: string;
   success: boolean;
@@ -79,6 +79,6 @@ export function emitWeixinMessageSent(params: {
         toPluginMessageContext(canonical),
       ),
     ),
-    "weixin: message_sent plugin hook failed",
+    "cowlab: message_sent plugin hook failed",
   );
 }

@@ -1,5 +1,5 @@
 /**
- * Runtime host-version compatibility check for openclaw-weixin.
+ * Runtime host-version compatibility check for openclaw-cowlab.
  *
  * OpenClaw uses a date-based version format: YYYY.M.DD (e.g. 2026.3.22).
  * This module parses that format and validates the running host is within
@@ -69,9 +69,9 @@ export function assertHostCompatibility(hostVersion: string | undefined): void {
     return;
   }
   throw new Error(
-    `This version of openclaw-weixin requires OpenClaw >=${SUPPORTED_HOST_MIN}, ` +
+    `This version of openclaw-cowlab requires OpenClaw >=${SUPPORTED_HOST_MIN}, ` +
     `but found ${hostVersion}. ` +
     `Please upgrade OpenClaw, or install the compatible track for older hosts:\n` +
-    `  npx @tencent-weixin/openclaw-weixin-cli install`,
+    `  npx @tencent-cowlab/openclaw-cowlab-cli install`,
   );
 }

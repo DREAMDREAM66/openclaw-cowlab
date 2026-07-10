@@ -1,17 +1,17 @@
 {
-  "id": "openclaw-weixin",
-  "version": "2.4.3",
+  "id": "openclaw-cowlab",
+  "version": "0.1.0",
   "channels": [
-    "openclaw-weixin"
+    "openclaw-cowlab"
   ],
   "channelConfigs": {
-    "openclaw-weixin": {
+    "openclaw-cowlab": {
       "schema": {
         "type": "object",
         "additionalProperties": true
       },
-      "label": "openclaw-weixin",
-      "description": "Weixin channel configuration."
+      "label": "openclaw-cowlab",
+      "description": "Cowlab channel configuration."
     }
   },
   "configSchema": {
