@@ -1,5 +1,7 @@
 # openclaw-cowlab
 
+[English](README.md) · [中文](README.zh.md)
+
 An [OpenClaw](https://docs.openclaw.ai) channel plugin that bridges **your own chat app** (via a small HTTP backend) to the OpenClaw agent gateway.
 
 > Forked from `@tencent-weixin/openclaw-weixin` with all WeChat-specific code replaced. The OpenClaw framework glue (channel wiring, message processing, storage, hooks) is carried over verbatim.
@@ -120,6 +122,7 @@ src/
   auth/
     accounts.ts        single-account persistence (<stateDir>/openclaw-cowlab/accounts/main.json)
     login.ts           static-token config loader
+    pairing.ts         framework pairing store (registerUserInFrameworkStore, readFrameworkAllowFromList)
   config/
     config-schema.ts   zod schema for the channel section
   messaging/
@@ -129,6 +132,7 @@ src/
     send.ts            sendMessageMyCowlab
     markdown-filter.ts streaming markdown → plain text
     error-notice.ts    user-facing error notice
+    debug-mode.ts      per-account debug mode toggle (persisted to disk)
     slash-commands.ts  /echo, /toggle-debug
   monitor/
     monitor.ts         long-poll loop with backoff + cursor persistence
@@ -138,9 +142,9 @@ src/
   util/
     logger.ts          JSON-line logger
     redact.ts          redactBody / redactUrl / redactToken
-    agent.ts           resolveAgentWorkspaceDir / resolveMatchedAgentId
     random.ts          generateId
   channel.ts           the ChannelPlugin<ResolvedMyCowlabAccount> wiring
+  compat.ts            host-version compatibility check (assertHostCompatibility)
 index.ts               plugin entry (registered via api.registerChannel)
 tests/
   mock-backend/server.ts  in-memory mock backend for manual / integration tests
