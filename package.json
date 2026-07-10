@@ -1,9 +1,20 @@
 {
   "name": "openclaw-cowlab",
   "version": "0.1.0",
-  "description": "OpenClaw channel plugin that bridges a custom chat app (HTTP backend) to the OpenClaw agent gateway.",
+  "description": "OpenClaw channel plugin that bridges a custom chat app (HTTP backend) to the OpenClaw agent gateway. Forked from @tencent-weixin/openclaw-weixin (MIT).",
   "license": "MIT",
-  "author": "",
+  "author": "DREAMDREAM66 (https://github.com/DREAMDREAM66)",
+  "contributors": [
+    { "name": "Tencent", "url": "https://github.com/Tencent" }
+  ],
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/DREAMDREAM66/openclaw-cowlab.git"
+  },
+  "homepage": "https://github.com/DREAMDREAM66/openclaw-cowlab#readme",
+  "bugs": {
+    "url": "https://github.com/DREAMDREAM66/openclaw-cowlab/issues"
+  },
   "type": "module",
   "files": [
     "src/",

@@ -159,6 +159,15 @@ tests/
 
 `<stateDir>` resolves to `OPENCLAW_STATE_DIR` → `CLAWDBOT_STATE_DIR` → `~/.openclaw`.
 
+## Acknowledgments
+
+This project is a fork of [`@tencent-weixin/openclaw-weixin`](https://github.com/Tencent/openclaw-weixin), licensed under MIT. The OpenClaw framework glue (channel wiring, message processing, storage, hooks) is carried over verbatim from the upstream; only the WeChat ilink protocol has been replaced with a generic HTTP bridge.
+
+Thanks to Tencent for the upstream work that made this project possible.
+
 ## License
 
-MIT
+MIT — see [LICENSE](./LICENSE).
+
+Copyright (c) 2026 Tencent (original `openclaw-weixin`)  
+Copyright (c) 2026 DREAMDREAM66 (`openclaw-cowlab` fork)

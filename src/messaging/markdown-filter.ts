@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Originally from https://github.com/Tencent/openclaw-weixin
+// Copyright (c) 2026 Tencent. Carried over verbatim from the upstream.
+
 /**
  * Streaming markdown filter — character-level state machine that strips
  * unsupported markdown syntax on-the-fly.

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Originally from https://github.com/Tencent/openclaw-weixin
+// Copyright (c) 2026 Tencent. Carried over verbatim from the upstream.
+
 /**
  * MyCowlab slash command handler.
  *

@@ -1,3 +1,7 @@
+// SPDX-License-Identifier: MIT
+// Originally from https://github.com/Tencent/openclaw-weixin
+// Copyright (c) 2026 Tencent. Carried over verbatim from the upstream.
+
 const DEFAULT_BODY_MAX_LEN = 200;
 const DEFAULT_TOKEN_PREFIX_LEN = 6;
 
